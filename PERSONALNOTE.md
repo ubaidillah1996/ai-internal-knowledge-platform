@@ -46,3 +46,39 @@ Multiple AI agents
 Department knowledge bases
 Advanced workflows
 Enterprise integrations
+
+FLOW ARCHITECTURE :
+
+Idea
+ ↓
+Requirement
+ ↓
+Architecture
+ ↓
+Folder Design
+ ↓
+Database Design
+ ↓
+API Design
+ ↓
+Coding
+
+ASSIST.. :
+
+Ubai
+ |
+ |-- ChatGPT
+ |      ├── Architecture
+ |      ├── Explain
+ |      ├── Debug
+ |      └── Review
+ |
+ |-- VS Code
+ |      ├── Write code
+ |      ├── Run project
+ |      └── Git
+ |
+ |-- Claude Free (Browser)
+        ├── Second opinion
+        ├── Review code
+        └── Alternative solution
