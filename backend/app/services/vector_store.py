@@ -1,8 +1,10 @@
 import chromadb
 
+from app.core.config import settings
+
 
 client = chromadb.PersistentClient(
-    path="./chroma_db"
+    path=settings.CHROMA_PATH
 )
 
 

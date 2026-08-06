@@ -1,6 +1,6 @@
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
-
+from app.core.config import settings
 from jose import jwt
 
 
@@ -10,8 +10,8 @@ pwd_context = CryptContext(
 )
 
 
-SECRET_KEY = "change_this_secret_key"
-ALGORITHM = "HS256"
+SECRET_KEY = settings.JWT_SECRET
+ALGORITHM = settings.JWT_ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 

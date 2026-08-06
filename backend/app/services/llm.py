@@ -1,5 +1,7 @@
 import ollama
 
+from app.core.config import settings
+
 
 def generate_answer(
     question: str,
@@ -9,7 +11,7 @@ def generate_answer(
 
     response = ollama.chat(
 
-        model="llama3.2:3b",
+        model=settings.OLLAMA_MODEL,
 
         messages=[
 

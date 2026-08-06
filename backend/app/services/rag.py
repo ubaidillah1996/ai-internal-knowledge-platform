@@ -11,7 +11,9 @@ from app.services.conversation_service import (
 )
 
 from app.services.context_builder import build_context
+import logging
 
+logger = logging.getLogger("ai-platform")
 
 
 def ask_question(
@@ -47,8 +49,11 @@ Current question:
 """
 
 
-    print("======== ENHANCED QUERY ========")
-    print(enhanced_query)
+
+    logger.info(
+        "Enhanced query: %s",
+        enhanced_query
+    )
 
 
 
@@ -58,7 +63,7 @@ Current question:
 
     query_vector = create_embedding(
 
-        enhanced_query
+        question
 
     )
 

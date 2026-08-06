@@ -82,3 +82,28 @@ Ubai
         ├── Second opinion
         ├── Review code
         └── Alternative solution
+
+{
+  "email": "admin@test.com",
+  "password": "hello123"
+}
+
+{
+ "username":"testuser",
+ "email":"test@test.com",
+ "password":"123456"
+}
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkB0ZXN0LmNvbSIsImV4cCI6MTc4NTgyOTE5NH0.XxVDU6j62sy0-cDQKxYPjjPS7rgADWQMM8dbCpO2yBQ
+
+.\venv\Scripts\Activate.ps1
+
+psql -U postgres
+\c ai_knowledge_db
+
+python -m uvicorn app.main:app --reload
+
+{
+  "conversation_id":1,
+  "query":"How many annual leave days do employees receive?"
+}
