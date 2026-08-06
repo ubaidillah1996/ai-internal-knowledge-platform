@@ -7,9 +7,11 @@ from alembic import context
 from app.core.database import Base
 
 from app.models.user import User
-
+from app.models.document import Document
 from dotenv import load_dotenv
 import os
+from app.models import *
+
 
 load_dotenv()
 
