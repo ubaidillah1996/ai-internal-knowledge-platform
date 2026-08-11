@@ -1,7 +1,8 @@
 import chromadb
+from torch import threshold
 
 from app.core.config import settings
-
+from app.core.logger import logger
 
 client = chromadb.PersistentClient(
     path=settings.CHROMA_PATH
@@ -47,8 +48,16 @@ def store_embedding(
 def search_embedding(
     query_embedding: list,
     limit: int = 5,
-    threshold: float = 1.0
+    threshold: float = 1.4
 ):
+
+    logger.info(
+        "Vector search started"
+    )
+
+    logger.info(
+        f"Search limit: {limit}, threshold: {threshold}"
+    )
 
     results = collection.query(
 
@@ -60,9 +69,17 @@ def search_embedding(
 
     )
 
+    logger.info(
+        f"Retrieved {len(results['documents'][0])} chunks from Chroma"
+    )
 
-    print(results["distances"])
-    print(results["metadatas"])
+
+    logger.info(
+        f"Vector distances: {results['distances']}"
+    )
+    logger.info(
+        f"Retrieved metadata: {results['metadatas']}"
+    )
 
 
     documents = results["documents"][0]
@@ -79,9 +96,26 @@ def search_embedding(
 
         distance = distances[index]
 
+        filename = metadatas[index].get(
+            "filename",
+            "Unknown"
+        )
+
+        print(
+            f"Distance: {distance} | File: {filename}"
+        )
+
+    for index, document in enumerate(documents):
+
+        distance = distances[index]
+
 
         if distance <= threshold:
 
+            print("\n========== CHUNK ==========")
+            print(document)
+            print("===========================\n")
+            
             output.append({
 
                 "content": document,
@@ -92,6 +126,10 @@ def search_embedding(
 
             })
 
+
+    logger.info(
+        f"Relevant chunks after filtering: {len(output)}"
+    )
 
     return output
 

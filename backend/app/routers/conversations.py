@@ -166,49 +166,70 @@ def get_conversations(
 
 }
 
-@router.get(
-    "/",
-    response_model=ConversationListResponse
-)
-def get_conversations(
-
-    skip: int = 0,
-
-    limit: int = 10,
-
-    db: Session = Depends(get_db),
-
-    current_user: User = Depends(get_current_user)
-
-):
-
-
-    conversations = (
-
-        db.query(Conversation)
-
-        .filter(
-            Conversation.user_id == current_user.id
-        )
-
-        .order_by(
-            Conversation.created_at.desc()
-        )
-
-        .offset(skip)
-
-        .limit(limit)
-
-        .all()
-
-    )
-
-
-    return conversations
-
 class RenameConversationRequest(BaseModel):
 
     title: str
+
+@router.get("/{conversation_id}")
+def get_conversation(
+    conversation_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    conversation = (
+        db.query(Conversation)
+        .filter(
+            Conversation.id == conversation_id,
+            Conversation.user_id == current_user.id
+        )
+        .first()
+    )
+
+    if not conversation:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Conversation not found"
+        )
+
+    return conversation
+
+@router.get("/{conversation_id}/messages")
+def get_conversation_messages(
+    conversation_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+
+    conversation = (
+        db.query(Conversation)
+        .filter(
+            Conversation.id == conversation_id,
+            Conversation.user_id == current_user.id
+        )
+        .first()
+    )
+
+    if not conversation:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Conversation not found"
+        )
+
+    messages = (
+        db.query(Message)
+        .filter(
+            Message.conversation_id == conversation_id
+        )
+        .order_by(
+            Message.created_at.asc()
+        )
+        .all()
+    )
+
+    return messages
 
 @router.patch("/{conversation_id}")
 def rename_conversation(

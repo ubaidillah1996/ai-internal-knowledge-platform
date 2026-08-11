@@ -1,60 +1,82 @@
 from app.core.database import SessionLocal
+from app.models.conversation import Conversation
 
 from app.services.chat_memory import (
-    create_conversation,
     save_message,
     get_history
 )
 
 
+def test_conversation_memory():
 
-db = SessionLocal()
+    db = SessionLocal()
 
+    try:
 
-conversation = create_conversation(
-    db=db,
-    user_id=1
-)
+        conversation = Conversation(
 
+            user_id=1,
 
-print(
-    "Conversation ID:",
-    conversation.id
-)
+            title="Memory Test"
 
+        )
 
+        db.add(conversation)
 
-save_message(
-    db=db,
-    conversation_id=conversation.id,
-    role="user",
-    content="How many annual leave days?"
-)
+        db.commit()
 
+        db.refresh(conversation)
 
+        save_message(
 
-save_message(
-    db=db,
-    conversation_id=conversation.id,
-    role="assistant",
-    content="Employees receive 18 days annual leave."
-)
+            db=db,
 
+            conversation_id=conversation.id,
 
+            role="user",
 
-history = get_history(
-    db=db,
-    conversation_id=conversation.id
-)
+            content="How many annual leave days?"
 
+        )
 
-for message in history:
+        save_message(
 
-    print(
-        message.role,
-        ":",
-        message.content
-    )
+            db=db,
 
+            conversation_id=conversation.id,
 
-db.close()
+            role="assistant",
+
+            content="Employees receive 18 days annual leave."
+
+        )
+
+        history = get_history(
+
+            db=db,
+
+            conversation_id=conversation.id,
+
+            user_id=1
+
+        )
+
+        assert history is not None
+
+        assert len(history) == 2
+
+        assert history[0].role == "user"
+
+        assert history[1].role == "assistant"
+
+        assert history[0].content == (
+            "How many annual leave days?"
+        )
+
+        assert history[1].content == (
+            "Employees receive 18 days annual leave."
+        )
+
+    finally:
+
+        db.close()

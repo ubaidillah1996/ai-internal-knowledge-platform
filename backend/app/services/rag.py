@@ -5,15 +5,19 @@ from app.services.llm import generate_answer
 from app.services.chat_memory import save_message
 
 from app.services.source_formatter import format_sources
-
 from app.services.conversation_service import (
     update_title_if_empty
 )
 
 from app.services.context_builder import build_context
+
+from app.services.query_rewriter import rewrite_query
+
 import logging
 
+
 logger = logging.getLogger("ai-platform")
+
 
 
 def ask_question(
@@ -39,38 +43,57 @@ def ask_question(
     )
 
 
-    enhanced_query = f"""
-{conversation_context}
-
-
-Current question:
-
-{question}
-"""
-
-
-
     logger.info(
-        "Enhanced query: %s",
-        enhanced_query
+        "Conversation context: %s",
+        conversation_context
     )
 
 
 
     # ==============================
-    # 2. Create embedding
+    # 2. Rewrite query for retrieval
+    # ==============================
+
+    search_query = rewrite_query(
+
+        question=question,
+
+        history=conversation_context
+
+    )
+
+    
+    logger.info(
+        "Original question: %s",
+        question
+    )
+
+   
+    logger.info(
+        "Search query: %s",
+        search_query
+    )
+
+
+    print("================ SEARCH QUERY ================")
+    print(search_query)
+
+
+
+    # ==============================
+    # 3. Create embedding
     # ==============================
 
     query_vector = create_embedding(
 
-        question
+        search_query
 
     )
 
 
 
     # ==============================
-    # 3. Vector Search
+    # 4. Vector Search
     # ==============================
 
     results = search_embedding(
@@ -80,8 +103,14 @@ Current question:
     )
 
 
+    logger.info(
+        "Retrieved results: %s",
+        len(results)
+    )
 
-    if not results or results[0]["distance"] > 1.2:
+
+
+    if not results or results[0]["distance"] > 1.5:
 
         return {
 
@@ -97,7 +126,7 @@ Current question:
 
 
     # ==============================
-    # 4. Prepare context for LLM
+    # 5. Prepare context for LLM
     # ==============================
 
     knowledge_context = "\n\n".join(
@@ -113,9 +142,15 @@ Current question:
     )
 
 
+    logger.info(
+        "Knowledge context length: %s",
+        len(knowledge_context)
+    )
+
+
 
     # ==============================
-    # 5. Generate answer
+    # 6. Generate answer
     # ==============================
 
     answer = generate_answer(
@@ -124,14 +159,14 @@ Current question:
 
         context=knowledge_context,
 
-        history=conversation_context
+        search_query=search_query
 
     )
 
 
 
     # ==============================
-    # 6. Save conversation
+    # 7. Save conversation
     # ==============================
 
     save_message(
@@ -162,7 +197,7 @@ Current question:
 
 
     # ==============================
-    # 7. Update title
+    # 8. Update title
     # ==============================
 
     update_title_if_empty(
@@ -178,7 +213,7 @@ Current question:
 
 
     # ==============================
-    # 8. Format sources
+    # 9. Format sources
     # ==============================
 
     sources = format_sources(
