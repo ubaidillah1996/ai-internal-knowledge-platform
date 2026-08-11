@@ -22,6 +22,7 @@ from app.services.conversation_summarizer import (
     generate_summary,
     save_summary
 )
+from app.services.reranker import rerank
 
 import logging
 
@@ -111,6 +112,35 @@ def ask_question(
 
     )
 
+    # ==============================
+    # 4.5 Rerank search results
+    # ==============================
+
+    if results:
+
+        results = rerank(
+            question=question,
+            documents=results,
+            top_k=3
+        )
+
+        for index, item in enumerate(results, start=1):
+
+            logger.info(
+                "Rerank #%s | score=%.4f | file=%s",
+                index,
+                item["rerank_score"],
+                item["metadata"].get(
+                    "filename",
+                    "Unknown"
+                )
+            )
+
+        logger.info(
+            "Reranked results: %s",
+            len(results)
+        )
+
 
     logger.info(
         "Retrieved results: %s",
@@ -197,11 +227,6 @@ def ask_question(
     # ==============================
     # 8. Conversation summarization
     # ==============================
-
-    from app.services.chat_memory import (
-        get_history,
-        format_history
-    )
 
 
     history_messages = get_history(

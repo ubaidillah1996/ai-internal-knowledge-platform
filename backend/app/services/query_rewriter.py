@@ -193,13 +193,92 @@ Return ONLY the repaired standalone question.
         and repaired_type
         and original_type != repaired_type
     ):
-
         logger.warning(
             "Repair still changed question type: "
             f"{original_type} -> {repaired_type}"
         )
 
         return question
+
+
+    # ==========================================
+    # Detect unresolved references
+    # ==========================================
+
+    reference_words = [
+        "it",
+        "its",
+        "they",
+        "their",
+        "them",
+        "this",
+        "that",
+        "those",
+        "these",
+    ]
+
+    repaired_tokens = re.findall(
+        r"\b\w+\b",
+        repaired.lower()
+    )
+
+    unresolved_reference = any(
+        word in repaired_tokens
+        for word in reference_words
+    )
+
+
+    if unresolved_reference:
+
+        logger.warning(
+            "Repair still contains unresolved "
+            "reference: %s",
+            repaired
+        )
+
+        history_lines = [
+            line.strip()
+            for line in history.splitlines()
+            if line.strip()
+        ]
+
+        previous_user_questions = [
+            line[5:].strip()
+            for line in history_lines
+            if line.lower().startswith("user:")
+        ]
+
+        if previous_user_questions:
+
+            previous_question = (
+                previous_user_questions[-1]
+            )
+
+            previous_type = get_question_type(
+                previous_question
+            )
+
+            if (
+                previous_type
+                and previous_type == original_type
+            ):
+
+                fallback = normalize_question_type(
+                    previous_question
+                )
+
+                logger.info(
+                    "Using previous user question "
+                    "as deterministic fallback: %s",
+                    fallback
+                )
+
+                return fallback
+
+        return question
+
+
+    return repaired
 
 
     # ==========================================
