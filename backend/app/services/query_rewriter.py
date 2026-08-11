@@ -201,8 +201,77 @@ Return ONLY the repaired standalone question.
 
         return question
 
-    return repaired
 
+    # ==========================================
+    # Validate reference resolution
+    # ==========================================
+
+    reference_words = [
+        "it",
+        "its",
+        "they",
+        "their",
+        "them",
+        "this",
+        "that",
+        "those",
+        "these",
+    ]
+
+    question_tokens = re.findall(
+        r"\b\w+\b",
+        question.lower()
+    )
+
+    repaired_lower = repaired.lower()
+
+    unresolved_reference = any(
+        word in repaired_lower.split()
+        for word in reference_words
+    )
+
+    if unresolved_reference:
+
+        logger.warning(
+            "Repair still contains unresolved reference. "
+            "Falling back to original question."
+        )
+
+        # Try one final deterministic repair using the
+        # most recent user question from history.
+        history_lines = [
+            line.strip()
+            for line in history.splitlines()
+            if line.strip()
+        ]
+
+        previous_user_questions = [
+            line[5:].strip()
+            for line in history_lines
+            if line.lower().startswith("user:")
+        ]
+
+        if previous_user_questions:
+
+            previous_question = previous_user_questions[-1]
+
+            previous_type = get_question_type(
+                previous_question
+            )
+
+            if (
+                previous_type
+                and previous_type == original_type
+            ):
+
+                return normalize_question_type(
+                    previous_question
+                )
+
+        return question
+
+
+    return repaired
 
 def rewrite_query(
     question: str,

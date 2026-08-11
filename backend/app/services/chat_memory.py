@@ -90,3 +90,27 @@ def format_history(messages):
 
 
     return history
+
+def build_memory_context(
+    conversation,
+    messages
+):
+
+    memory = ""
+
+    if conversation.summary:
+
+        memory += (
+            "Conversation Summary:\n"
+            f"{conversation.summary}\n\n"
+        )
+
+    memory += (
+        "Recent Messages:\n"
+    )
+
+    memory += format_history(
+        messages
+    )
+
+    return memory

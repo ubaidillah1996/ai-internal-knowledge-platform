@@ -2,9 +2,14 @@ from app.services.embedding import create_embedding
 from app.services.vector_store import search_embedding
 from app.services.llm import generate_answer
 
-from app.services.chat_memory import save_message
+from app.services.chat_memory import (
+    save_message,
+    get_history,
+    format_history
+)
 
 from app.services.source_formatter import format_sources
+
 from app.services.conversation_service import (
     update_title_if_empty
 )
@@ -13,8 +18,12 @@ from app.services.context_builder import build_context
 
 from app.services.query_rewriter import rewrite_query
 
-import logging
+from app.services.conversation_summarizer import (
+    generate_summary,
+    save_summary
+)
 
+import logging
 
 logger = logging.getLogger("ai-platform")
 
@@ -170,34 +179,68 @@ def ask_question(
     # ==============================
 
     save_message(
-
         db=db,
-
         conversation_id=conversation_id,
-
         role="user",
-
         content=question
-
     )
 
 
     save_message(
+        db=db,
+        conversation_id=conversation_id,
+        role="assistant",
+        content=answer
+    )
+
+
+    # ==============================
+    # 8. Conversation summarization
+    # ==============================
+
+    from app.services.chat_memory import (
+        get_history,
+        format_history
+    )
+
+
+    history_messages = get_history(
 
         db=db,
 
         conversation_id=conversation_id,
 
-        role="assistant",
+        user_id=user_id,
 
-        content=answer
-
+        limit=100
     )
 
 
+    if history_messages and len(history_messages) >= 10:
+
+        history_text = format_history(
+            history_messages
+        )
+
+        summary = generate_summary(
+            history_text
+        )
+
+        save_summary(
+
+            db=db,
+
+            conversation_id=conversation_id,
+
+            summary=summary,
+
+            message_count=len(history_messages)
+
+        )
+
 
     # ==============================
-    # 8. Update title
+    # 9. Update title
     # ==============================
 
     update_title_if_empty(
